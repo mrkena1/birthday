@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>For You</title>
+<style>
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--sky:#eaf6ff;--sky2:#bfe3fb;--blue:#2b8fd6;--ink:#17415f;--pink:#ffe6ee;--rose:#e0567f;--card:#ffffffd9}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;height:100%;font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;background:var(--sky);color:var(--ink);overflow:hidden}
+[hidden]{display:none!important}
+button{font:inherit;cursor:pointer;border:0}
+/* INTRO (pink) */
+#intro{position:fixed;inset:0;background:radial-gradient(circle at 50% 30%,#fff3f7,#ffd3e2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s;color:#7a2a45;z-index:5}
+#intro.out{opacity:0;pointer-events:none}
+.wrap{position:relative;width:min(78vw,300px)}
+.env{width:100%;aspect-ratio:1.5;background:#ffc0d3;border-radius:10px;position:relative;box-shadow:0 18px 40px #e0567f40;cursor:pointer;animation:float 3s ease-in-out infinite}
+.flap{position:absolute;inset:0 0 45% 0;background:#ff9db8;clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .6s;border-radius:10px 10px 0 0}
+.env.open .flap{transform:rotateX(180deg)}
+.seal{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:28px;z-index:2;transition:opacity .3s}
+.env.open .seal{opacity:0}
+.flower{position:absolute;right:-38px;bottom:-30px;width:96px;filter:drop-shadow(0 6px 8px #e0567f40);animation:sway 4s ease-in-out infinite;transform-origin:bottom center}
+@keyframes float{50%{transform:translateY(-8px)}}
+@keyframes sway{50%{transform:rotate(6deg)}}
+.hint{font-size:15px;letter-spacing:.5px;opacity:.8}
+#letter{position:fixed;inset:0;background:linear-gradient(#fff0f5,#ffd9e6);display:flex;justify-content:center;padding:18px;z-index:6;animation:rise .7s ease}
+@keyframes rise{from{opacity:0;transform:translateY(40px)}}
+.paper{background:#fffafc;max-width:600px;width:100%;max-height:100%;overflow:auto;border-radius:18px;padding:30px 26px 34px;box-shadow:0 20px 50px #e0567f33;border:1px solid #ffc0d3;color:#6b2440;line-height:1.75;font-family:Georgia,'Times New Roman',serif;font-size:17px}
+.paper h1{font-size:26px;margin:0 0 14px;color:var(--rose);text-align:center}
+.paper p{margin:0 0 14px}
+.sign{text-align:right;font-style:italic}
+.go{display:block;margin:22px auto 0;padding:14px 38px;border-radius:99px;background:var(--rose);color:#fff;font-size:18px;font-weight:600;box-shadow:0 8px 20px #e0567f66;transition:transform .2s}
+.go:active{transform:scale(.96)}
+/* APP (light blue) */
+#app{position:fixed;inset:0;background:linear-gradient(#f4fbff,var(--sky2));display:flex;flex-direction:column;animation:rise .7s ease}
+header{display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top,0px)) 18px 10px;position:relative;z-index:4}
+header h2{margin:0;font-size:20px;font-weight:600}
+.burger{width:44px;height:44px;border-radius:12px;background:var(--card);display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;box-shadow:0 4px 14px #2b8fd633}
+.burger i{display:block;width:20px;height:2.5px;background:var(--blue);border-radius:2px}
+.menu{position:absolute;right:18px;top:calc(64px + env(safe-area-inset-top,0px));background:#fff;border-radius:14px;box-shadow:0 12px 32px #2b8fd640;overflow:hidden;min-width:170px}
+.menu button{display:block;width:100%;padding:14px 20px;text-align:left;background:none;color:var(--ink);font-size:16px}
+.menu button:hover,.menu button.on{background:#e4f3ff}
+.view{flex:1;min-height:0;display:flex;flex-direction:column}
+#stage{flex:1;min-height:0;touch-action:none;cursor:grab;position:relative;margin:0 14px;border-radius:22px;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#123f78,#06142b 75%);box-shadow:0 12px 32px #2b8fd655}
+#stage canvas{display:block;width:100%;height:100%}
+.zoom{position:absolute;right:16px;bottom:12px;display:flex;flex-direction:column;gap:8px}
+.zoom button{width:40px;height:40px;border-radius:50%;background:var(--card);color:var(--blue);font-size:22px;box-shadow:0 4px 12px #2b8fd633}
+.dock{padding:12px 18px calc(22px + env(safe-area-inset-bottom,0px));text-align:center}
+.dist{padding:14px 26px;border-radius:99px;background:var(--blue);color:#fff;font-size:17px;font-weight:600;box-shadow:0 10px 24px #2b8fd666;max-width:100%}
+.note{margin:10px 0 0;font-size:14px;min-height:20px;opacity:.85}
+.panel{flex:1;overflow:auto;padding:8px 18px 30px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.tile{aspect-ratio:1;border-radius:16px;background:linear-gradient(135deg,#fff,#cfeaff);display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 6px 16px #2b8fd626;overflow:hidden;position:relative}
+.tile img{width:100%;height:100%;object-fit:cover}
+.compose{max-width:640px;display:flex;flex-direction:column;gap:10px;margin-bottom:18px}.compose .dist{align-self:flex-end}
+.compose input,.compose textarea{font:inherit;padding:12px 14px;border:1px solid var(--sky2);border-radius:14px;background:#fff;color:var(--ink);resize:none;width:100%}
+.msg b{display:block;color:var(--blue)}.msg small{display:block;opacity:.6;margin-top:4px}
+#lb{position:fixed;inset:0;background:#06142bcc;display:flex;align-items:center;justify-content:center;z-index:9;padding:16px}#lb img{max-width:100%;max-height:100%;border-radius:14px}
+button.tile{border:0;padding:0}
+.msg{background:var(--card);border-radius:16px;padding:16px 18px;margin:0 0 12px;line-height:1.6;box-shadow:0 6px 16px #2b8fd61f;max-width:640px}
+</style>
+</head>
+<body>
+
+<section id="intro">
+  <div class="wrap">
+    <div class="env" id="env"><div class="flap"></div><div class="seal">💗</div></div>
+    <svg class="flower" viewBox="-50 -50 100 130" aria-hidden="true">
+      <path d="M0 8 C4 40 -4 60 0 80" stroke="#6bbf8a" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M0 50 C-18 40 -26 46 -28 54 C-16 60 -6 58 0 50Z" fill="#8fd3a5"/>
+      <g fill="#ff8fb1">
+        <ellipse cx="0" cy="-22" rx="11" ry="20"/><ellipse cx="0" cy="-22" rx="11" ry="20" transform="rotate(60)"/>
+        <ellipse cx="0" cy="-22" rx="11" ry="20" transform="rotate(120)"/><ellipse cx="0" cy="-22" rx="11" ry="20" transform="rotate(180)"/>
+        <ellipse cx="0" cy="-22" rx="11" ry="20" transform="rotate(240)"/><ellipse cx="0" cy="-22" rx="11" ry="20" transform="rotate(300)"/>
+      </g><circle r="10" fill="#ffd166"/>
+    </svg>
+  </div>
+  <div class="hint">a letter for you · tap to open</div>
+</section>
+
+<section id="letter" hidden>
+  <div class="paper">
+    <h1>Happy Birthday, my loves 🌸</h1>
+    <p>To the girls who make my world softer, brighter and so much warmer,</p>
+    <p>Today is yours, and I wanted to start it by telling you what I don't say out loud often enough: you matter to me more than words can carry. You are the laughter I look forward to, the comfort on heavy days, and the reason ordinary moments turn into memories I keep close.</p>
+    <p>I wish you a year full of gentle mornings, big dreams that actually come true, and people who love you the way you deserve to be loved. I wish you strength on the hard days and joy so loud on the good ones that nothing else can be heard. May every door you knock on open, and may you never forget how special you are.</p>
+    <p>Thank you for being exactly who you are. Thank you for every smile, every talk, every moment. Distance can stretch between us, but it has never once made you feel far from my heart.</p>
+    <p>So make a wish, blow out the candles, and know that I'm wishing right along with you. I love you, more than this letter could ever say.</p>
+    <p class="sign">With all my love,<br>Me 💗</p>
+    <p style="text-align:center;margin-top:22px">Now, there's something I made for you…</p>
+    <button class="go" id="go">lezgoo</button>
+  </div>
+</section>
+
+<div id="app" hidden>
+  <header>
+    <h2 id="title">Our Earth 🌍</h2>
+    <button class="burger" id="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+    <div class="menu" id="menu" hidden>
+      <button data-v="earth" class="on">🌍 Earth</button>
+      <button data-v="pics">📷 Pics</button>
+      <button data-v="msgs">💌 Messages</button>
+    </div>
+  </header>
+
+  <div class="view" id="v-earth">
+    <div id="stage"><div class="zoom"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button></div></div>
+    <div class="dock">
+      <button class="dist" id="dist">One day it will say 0</button>
+      <p class="note" id="note">Tap to see how far you are from me</p>
+    </div>
+  </div>
+
+  <div class="view" id="v-pics" hidden><div class="panel"><div class="grid" id="grid"></div></div></div>
+  <div class="view" id="v-msgs" hidden><div class="panel">
+    <div class="compose"><input id="mname" maxlength="30" placeholder="Your name"><textarea id="mtext" maxlength="500" rows="3" placeholder="Write a message…"></textarea><button class="dist" id="msend">Send 💌</button></div>
+    <div id="msgs"></div></div></div>
+</div>
+
+<div id="lb" hidden><img alt=""></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/datamaps@0.5.9/dist/datamaps.all.min.js"></script>
+<script>
+/* ===== EDIT THESE ===== */
+const ME = {lat: 34.74, lon: 10.76};           // my coordinates
+const DRIVE_FOLDER = "";  // Google Drive folder ID (shared "Anyone with the link"), photos named 1, 2, 3...
+const DRIVE_KEY = "";     // Google API key with the Drive API enabled
+const PIC_IDS = [];       // optional: instead of the two above, list Drive file IDs in order
+const DB = "";            // Firebase Realtime Database URL, e.g. "https://my-app-default-rtdb.firebaseio.com"
+/* ====================== */
+const $=s=>document.querySelector(s);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+$('#env').onclick=()=>{$('#env').classList.add('open');setTimeout(()=>{$('#letter').hidden=false},650)};
+$('#go').onclick=()=>{$('#intro').classList.add('out');$('#letter').hidden=true;$('#app').hidden=false;initGlobe();setTimeout(()=>$('#intro').remove(),700)};
+
+/* menu */
+const titles={earth:'Our Earth 🌍',pics:'Pics 📷',msgs:'Messages 💌'};
+$('#burger').onclick=e=>{e.stopPropagation();$('#menu').hidden=!$('#menu').hidden};
+document.addEventListener('click',()=>{$('#menu').hidden=true});
+document.querySelectorAll('.menu button').forEach(b=>b.onclick=()=>{
+  const v=b.dataset.v;
+  document.querySelectorAll('.view').forEach(x=>x.hidden=x.id!=='v-'+v);
+  document.querySelectorAll('.menu button').forEach(x=>x.classList.toggle('on',x===b));
+  $('#title').textContent=titles[v];
+  if(v==='earth')setTimeout(resize,30);if(v==='pics')loadPics();if(v==='msgs')loadMsgs();
+});
+/* pics from Google Drive */
+let picsLoaded=false;
+const thumb=(id,w)=>`https://drive.google.com/thumbnail?id=${id}&sz=w${w}`;
+async function loadPics(){
+  if(picsLoaded)return;const gr=$('#grid');
+  try{
+    let ids=PIC_IDS.slice();
+    if(!ids.length&&DRIVE_FOLDER&&DRIVE_KEY){
+      const q=encodeURIComponent(`'${DRIVE_FOLDER}' in parents and trashed=false and mimeType contains 'image/'`);
+      const j=await(await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=200&key=${DRIVE_KEY}`)).json();
+      ids=j.files.sort((a,b)=>parseFloat(a.name)-parseFloat(b.name)||a.name.localeCompare(b.name)).map(f=>f.id);
+    }
+    if(!ids.length){gr.innerHTML=Array(6).fill('<div class="tile">🌸</div>').join('');return}
+    gr.innerHTML=ids.map((id,i)=>`<button class="tile" data-i="${i}"><img loading="lazy" src="${thumb(id,600)}" alt="Photo ${i+1}"></button>`).join('');
+    gr.onclick=e=>{const t=e.target.closest('.tile');if(!t||!t.dataset.i)return;$('#lb img').src=thumb(ids[t.dataset.i],1600);$('#lb').hidden=false};
+    picsLoaded=true;
+  }catch(e){gr.innerHTML='<div class="msg">Could not load the photos. Try again later.</div>'}
+}
+$('#lb').onclick=()=>{$('#lb').hidden=true};
+/* messages (shared through Firebase; this device only if DB is empty) */
+const MK='msgsLocal';
+async function fetchMsgs(){
+  if(!DB){try{return JSON.parse(store.get(MK)||'[]')}catch(e){return[]}}
+  const j=await(await fetch(`${DB}/messages.json?orderBy="$key"&limitToLast=200`)).json();
+  return Object.values(j||{});
+}
+async function loadMsgs(){
+  const box=$('#msgs');
+  try{
+    const a=(await fetchMsgs()).sort((x,y)=>y.t-x.t);box.innerHTML='';
+    a.forEach(m=>{const d=document.createElement('div');d.className='msg';const b=document.createElement('b'),p=document.createElement('span'),t=document.createElement('small');
+      b.textContent=m.name||'Someone';p.textContent=m.text;t.textContent=new Date(m.t).toLocaleString();d.append(b,p,t);box.append(d)});
+    if(!a.length)box.innerHTML='<div class="msg">No messages yet. Be the first 💙</div>';
+  }catch(e){box.innerHTML='<div class="msg">Could not load messages.</div>'}
+}
+$('#msend').onclick=async()=>{
+  const text=$('#mtext').value.trim();if(!text)return;
+  const m={name:$('#mname').value.trim().slice(0,30),text:text.slice(0,500),t:Date.now()};$('#msend').disabled=true;
+  try{
+    if(DB){if(!(await fetch(`${DB}/messages.json`,{method:'POST',body:JSON.stringify(m)})).ok)throw 0}
+    else{const a=JSON.parse(store.get(MK)||'[]');a.push(m);store.set(MK,JSON.stringify(a))}
+    $('#mtext').value='';store.set('mname',m.name);await loadMsgs();
+  }catch(e){alert('Could not send. Please try again.')}
+  $('#msend').disabled=false;
+};
+$('#mname').value=store.get('mname')||'';
+setInterval(()=>{if(!$('#v-msgs').hidden)loadMsgs()},30000);
+
+/* globe */
+let R,S,C,g,A,arc,her,cl,inited=false,auto=true,timer,vx=0,vy=0,tz=3.4,dragging=false;
+function ll(lat,lon,r){const p=(90-lat)*Math.PI/180,t=(lon+180)*Math.PI/180;return new THREE.Vector3(-r*Math.sin(p)*Math.cos(t),r*Math.cos(p),r*Math.sin(p)*Math.sin(t))}
+function rnd(s){return()=>(s=(s*16807)%2147483647)/2147483647}
+function fallback(p,W,H){const L=[
+   [-168,66,-141,70,-115,70,-95,68,-82,68,-78,58,-65,60,-56,52,-66,44,-76,36,-81,30,-80,25,-90,30,-97,26,-97,19,-91,18,-88,21,-88,15,-83,10,-78,8,-86,12,-92,15,-105,20,-110,24,-115,30,-118,34,-124,40,-124,48,-133,55,-150,60,-165,60],
+   [-78,8,-72,12,-62,10,-52,5,-50,0,-35,-6,-39,-15,-48,-26,-58,-35,-65,-42,-68,-52,-72,-54,-74,-45,-71,-30,-70,-18,-76,-14,-81,-5,-80,0,-77,4],
+   [-17,21,-10,30,-5,36,10,37,20,32,32,31,35,28,43,12,51,12,40,-3,40,-15,35,-25,28,-33,20,-35,15,-27,12,-15,9,-1,9,4,-8,4,-16,12],
+   [-9,37,-9,43,-1,46,-4,48,3,51,9,54,10,57,5,60,6,63,15,68,25,71,40,68,60,69,80,73,105,77,140,72,170,70,180,66,178,63,160,60,156,51,142,54,135,44,129,35,122,40,122,30,117,23,108,21,106,10,100,13,103,1,98,8,97,17,92,22,88,22,80,15,77,8,73,17,67,25,57,25,56,27,50,30,48,29,51,25,56,26,59,22,52,16,43,13,39,21,35,28,35,31,36,36,28,37,24,40,21,38,19,42,14,45,12,44,16,40,15,38,10,44,3,43,-2,37],
+   [114,-22,122,-18,130,-12,137,-12,142,-11,146,-19,153,-26,150,-37,141,-38,131,-31,115,-34],
+   [-55,60,-45,60,-20,70,-20,82,-60,82,-72,78,-55,68],
+   [-180,-70,180,-70,180,-90,-180,-90],
+   [-5,50,1,51,-2,57,-6,58],[130,32,135,34,141,38,142,43,140,41,131,34],[95,5,105,-6,102,-4,98,2],[106,-6,114,-8,108,-8],[110,1,118,6,117,-3,111,-3],[44,-13,50,-15,48,-25,44,-22]
+  ];
+  L.forEach(a=>{for(let i=0;i<a.length;i+=2){const X=(a[i]+180)/360*W,Y=(90-a[i+1])/180*H;i?p.lineTo(X,Y):p.moveTo(X,Y)}p.closePath()})}
+function landPath(W,H){
+  let p=new Path2D();const X=v=>(v+180)/360*W,Y=v=>(90-v)/180*H,T=window.Datamap&&Datamap.prototype.worldTopo;
+  try{
+    const o=Object.values(T.objects)[0],sc=T.transform.scale,tr=T.transform.translate;
+    const A=T.arcs.map(a=>{let x=0,y=0;return a.map(q=>{x+=q[0];y+=q[1];return[x*sc[0]+tr[0],y*sc[1]+tr[1]]})});
+    const ring=r=>{let pts=[];r.forEach(i=>{const a=i<0?A[~i].slice().reverse():A[i];pts=pts.concat(pts.length?a.slice(1):a)});
+      p.moveTo(X(pts[0][0]),Y(pts[0][1]));pts.forEach(q=>p.lineTo(X(q[0]),Y(q[1])));p.closePath()};
+    o.geometries.forEach(g=>{if(g.type==='Polygon')g.arcs.forEach(ring);else if(g.type==='MultiPolygon')g.arcs.forEach(m=>m.forEach(ring))});
+    if(!o.geometries.length)throw 0;
+  }catch(e){p=new Path2D();fallback(p,W,H)}
+  return p;
+}
+function earthTextures(){
+  const W=4096,H=2048,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),path=landPath(W,H),r=rnd(7);
+  let o=x.createLinearGradient(0,0,0,H);o.addColorStop(0,'#0d4380');o.addColorStop(.5,'#0a5aa5');o.addColorStop(1,'#0d4380');x.fillStyle=o;x.fillRect(0,0,W,H);
+  x.save();x.shadowColor='#3cc4d8';x.shadowBlur=28;x.fillStyle='#3cc4d8';x.fill(path);x.restore();
+  const l=x.createLinearGradient(0,0,0,H);
+  [[0,'#f4f8fa'],[.1,'#dfe6e0'],[.2,'#5f8a4f'],[.3,'#7f9550'],[.36,'#c2ad74'],[.43,'#8c9a52'],[.5,'#2e7433'],[.57,'#7d9a4a'],[.64,'#c2ad74'],[.72,'#5c8746'],[.82,'#9aab8d'],[.92,'#eef3f3'],[1,'#fff']].forEach(t=>l.addColorStop(t[0],t[1]));
+  x.fillStyle=l;x.fill(path);
+  x.save();x.clip(path);const cols=['#2d5f2f','#6b8b3f','#c9b47a','#8a7550','#3f7a3a','#e8efe9'];
+  for(let i=0;i<2600;i++){x.globalAlpha=.05+r()*.09;x.fillStyle=cols[r()*6|0];const q=8+r()*50;x.beginPath();x.ellipse(r()*W,r()*H,q,q*(.4+r()*.6),r()*3,0,7);x.fill()}
+  x.restore();x.globalAlpha=1;x.strokeStyle='rgba(255,255,255,.28)';x.lineWidth=1.2;x.stroke(path);
+  const s=document.createElement('canvas');s.width=2048;s.height=1024;const y=s.getContext('2d');y.fillStyle='#bbb';y.fillRect(0,0,2048,1024);y.scale(.5,.5);y.fillStyle='#000';y.fill(path);
+  const m=new THREE.CanvasTexture(c);m.anisotropy=8;
+  return{map:m,spec:new THREE.CanvasTexture(s)};
+}
+function cloudTexture(){
+  const c=document.createElement('canvas');c.width=2048;c.height=1024;const x=c.getContext('2d'),r=rnd(11);
+  for(let i=0;i<420;i++){const cx=r()*2048,cy=(.12+r()*.76)*1024,q=20+r()*70,d=x.createRadialGradient(cx,cy,0,cx,cy,q);
+    d.addColorStop(0,'rgba(255,255,255,.5)');d.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=d;
+    x.save();x.translate(cx,cy);x.scale(2.2,1);x.translate(-cx,-cy);x.beginPath();x.arc(cx,cy,q,0,7);x.fill();x.restore()}
+  return new THREE.CanvasTexture(c);
+}
+function pin(lat,lon,col){const m=new THREE.Mesh(new THREE.SphereGeometry(.028,16,16),new THREE.MeshBasicMaterial({color:col}));m.position.copy(ll(lat,lon,1.012));g.add(m);return m}
+function initGlobe(){
+  if(inited)return;inited=true;const st=$('#stage');
+  R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio,2));st.appendChild(R.domElement);
+  S=new THREE.Scene();C=new THREE.PerspectiveCamera(40,1,.1,60);C.position.z=7;
+  S.add(new THREE.AmbientLight(0xffffff,.55));const d=new THREE.DirectionalLight(0xffffff,1);d.position.set(-3,2,4);S.add(d);
+  const sp=[];for(let i=0;i<900;i++)sp.push(new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().multiplyScalar(30));
+  S.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints(sp),new THREE.PointsMaterial({color:0xffffff,size:.09})));
+  g=new THREE.Group();S.add(g);g.rotation.set(ME.lat*Math.PI/180*.6,-(ME.lon+90)*Math.PI/180,0);
+  const tx=earthTextures();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(1,96,96),new THREE.MeshPhongMaterial({map:tx.map,specularMap:tx.spec,specular:0x6688aa,shininess:28})));
+  cl=new THREE.Mesh(new THREE.SphereGeometry(1.008,64,64),new THREE.MeshPhongMaterial({map:cloudTexture(),transparent:true,opacity:.6,depthWrite:false}));g.add(cl);
+  S.add(new THREE.Mesh(new THREE.SphereGeometry(1.14,64,64),new THREE.ShaderMaterial({
+    vertexShader:'varying vec3 n;void main(){n=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'varying vec3 n;void main(){float k=clamp(-n.z/.48,0.,1.);gl_FragColor=vec4(.35,.65,1.,1.)*pow(k,2.)*1.3;}',
+    blending:THREE.AdditiveBlending,side:THREE.BackSide,transparent:true,depthWrite:false})));
+  pin(ME.lat,ME.lon,0x17415f);
+  const sv=store.get('herLoc');if(sv){try{setHer(JSON.parse(sv))}catch(e){}}
+  bind(st);resize();addEventListener('resize',resize);
+  (function loop(){requestAnimationFrame(loop);C.position.z+=(tz-C.position.z)*.08;
+    if(auto)g.rotation.y+=.0018;else if(!dragging){g.rotation.y+=vy;g.rotation.x=Math.max(-1.3,Math.min(1.3,g.rotation.x+vx));vy*=.94;vx*=.94}else{vy*=.8;vx*=.8}
+    cl.rotation.y+=.0003;R.render(S,C)})();
+}
+function resize(){const s=$('#stage');if(!R||!s.clientWidth)return;R.setSize(s.clientWidth,s.clientHeight);C.aspect=s.clientWidth/s.clientHeight;C.updateProjectionMatrix()}
+function zoom(d){tz=Math.max(1.35,Math.min(6,tz+d))}
+function bind(st){
+  const P=new Map();let pd=0;const pinch=()=>{const a=[...P.values()];return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)};
+  st.onpointerdown=e=>{P.set(e.pointerId,{x:e.clientX,y:e.clientY});st.setPointerCapture(e.pointerId);auto=false;dragging=true;clearTimeout(timer);if(P.size==2)pd=pinch()};
+  st.onpointermove=e=>{const p=P.get(e.pointerId);if(!p)return;const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;
+    if(P.size==1){const k=(tz-1)*.0025;vy=dx*k;vx=dy*k;g.rotation.y+=vy;g.rotation.x=Math.max(-1.3,Math.min(1.3,g.rotation.x+vx))}
+    else if(P.size==2){const n=pinch();zoom((pd-n)*.01);pd=n}};
+  const up=e=>{P.delete(e.pointerId);if(!P.size){dragging=false;clearTimeout(timer);timer=setTimeout(()=>auto=true,3500)}};
+  st.onpointerup=up;st.onpointercancel=up;
+  st.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY*.002)},{passive:false});
+  $('#zi').onpointerdown=e=>e.stopPropagation();$('#zo').onpointerdown=e=>e.stopPropagation();
+  $('#zi').onclick=()=>zoom(-.4);$('#zo').onclick=()=>zoom(.4);
+}
+function km(a,b){const r=x=>x*Math.PI/180,dl=r(b.lat-a.lat),dn=r(b.lon-a.lon);
+  const h=Math.sin(dl/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dn/2)**2;return 6371*2*Math.asin(Math.sqrt(h))}
+function setHer(p){
+  if(her)g.remove(her);if(arc)g.remove(arc);
+  her=pin(p.lat,p.lon,0xe0567f);
+  const a=ll(ME.lat,ME.lon,1).normalize(),b=ll(p.lat,p.lon,1).normalize(),w=Math.acos(Math.min(1,a.dot(b))),pts=[];
+  if(w>.001)for(let i=0;i<=60;i++){const t=i/60,v=a.clone().multiplyScalar(Math.sin((1-t)*w)).add(b.clone().multiplyScalar(Math.sin(t*w))).divideScalar(Math.sin(w));pts.push(v.multiplyScalar(1.01+.12*Math.sin(Math.PI*t)))}
+  if(pts.length){arc=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0xe0567f}));g.add(arc)}
+  const d=Math.round(km(ME,p));
+  $('#dist').textContent=d.toLocaleString()+' km — one day it will say 0';
+  $('#note').textContent=d<1?'You are right here with me 💙':'This is how far you are from me 💙';
+}
+$('#dist').onclick=()=>{
+  if(!navigator.geolocation){$('#note').textContent='Location is not supported on this device.';return}
+  $('#note').textContent='Finding you…';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const p={lat:pos.coords.latitude,lon:pos.coords.longitude};store.set('herLoc',JSON.stringify(p));setHer(p);
+  },err=>{$('#note').textContent=err.code===1?'Location was blocked. Allow it in your browser settings and try again.':'Could not get your location. Try again.'},{enableHighAccuracy:false,timeout:12000});
+};
+</script>
+</body>
+</html>
